@@ -1,0 +1,17 @@
+FROM alpine:3.19
+
+ENV LANG=C.UTF-8
+
+# Disable SSL verification for apk (required for networks with SSL inspection)
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories && \
+    apk add --no-cache --allow-untrusted \
+    bash \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    python3 \
+    ripgrep
+
+CMD ["sleep", "infinity"]
