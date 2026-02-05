@@ -1,0 +1,9 @@
+{
+  "id": "outlook",
+  "channels": ["outlook"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@openclaw/outlook",
+  "version": "2026.2.2",
+  "description": "OpenClaw Outlook email channel plugin (MS Graph)",
+  "type": "module",
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "outlook",
+      "label": "Outlook Email",
+      "selectionLabel": "Outlook Email (MS Graph)",
+      "docsPath": "/channels/outlook",
+      "docsLabel": "outlook",
+      "blurb": "MS Graph; app-level mailbox permissions.",
+      "aliases": [
+        "email"
+      ],
+      "order": 65
+    },
+    "install": {
+      "npmSpec": "@openclaw/outlook",
+      "localPath": "extensions/outlook",
+      "defaultChoice": "local"
+    }
+  }
+}
