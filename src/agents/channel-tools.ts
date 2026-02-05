@@ -84,6 +84,37 @@ export function resolveChannelMessageToolHints(params: {
     .filter(Boolean);
 }
 
+/**
+ * Collect messageToolHints from all plugin channels that have at least one account,
+ * excluding the runtime channel (whose hints are already surfaced via resolveChannelMessageToolHints).
+ * This ensures cross-channel hints (e.g. "you can send email via outlook") appear in webchat sessions.
+ */
+export function resolveDeliverableMessageToolHints(params: {
+  cfg?: OpenClawConfig;
+  excludeChannel?: string | null;
+}): string[] {
+  const cfg = params.cfg ?? ({} as OpenClawConfig);
+  const exclude = normalizeAnyChannelId(params.excludeChannel);
+  const hints: string[] = [];
+  for (const plugin of listChannelPlugins()) {
+    if (plugin.id === exclude) {
+      continue;
+    }
+    const resolve = plugin.agentPrompt?.messageToolHints;
+    if (!resolve) {
+      continue;
+    }
+    // Only include hints for channels that have at least one account
+    const accountIds = plugin.config?.listAccountIds?.(cfg);
+    if (!accountIds || accountIds.length === 0) {
+      continue;
+    }
+    const pluginHints = resolve({ cfg, accountId: accountIds[0] }) ?? [];
+    hints.push(...pluginHints.map((h) => h.trim()).filter(Boolean));
+  }
+  return hints;
+}
+
 const loggedListActionErrors = new Set<string>();
 
 function runPluginListActions(

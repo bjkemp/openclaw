@@ -95,6 +95,18 @@ const listPluginChannelAliases = (): string[] => {
 export const listDeliverableMessageChannels = (): ChannelId[] =>
   Array.from(new Set([...CHANNEL_IDS, ...listPluginChannelIds()]));
 
+/** Annotated channel-options string: plugin IDs are suffixed with their first alias so the
+ *  system prompt is self-documenting (e.g. `outlook (email)`, `msteams (teams)`). */
+export const buildDeliverableChannelOptions = (): string => {
+  const coreIds: string[] = [...CHANNEL_IDS];
+  const registry = getActivePluginRegistry();
+  const pluginEntries = (registry?.channels ?? []).map((entry) => {
+    const alias = (entry.plugin.meta.aliases ?? [])[0];
+    return alias ? `${entry.plugin.id} (${alias})` : entry.plugin.id;
+  });
+  return [...coreIds, ...pluginEntries].join("|");
+};
+
 export type DeliverableMessageChannel = ChannelId;
 
 export type GatewayMessageChannel = DeliverableMessageChannel | InternalMessageChannel;

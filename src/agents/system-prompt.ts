@@ -3,7 +3,7 @@ import type { MemoryCitationsMode } from "../config/types.memory.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
-import { listDeliverableMessageChannels } from "../utils/message-channel.js";
+import { buildDeliverableChannelOptions } from "../utils/message-channel.js";
 
 /**
  * Controls which hardcoded sections are included in the system prompt.
@@ -344,7 +344,7 @@ export function buildAgentSystemPrompt(params: {
     .filter(Boolean);
   const runtimeCapabilitiesLower = new Set(runtimeCapabilities.map((cap) => cap.toLowerCase()));
   const inlineButtonsEnabled = runtimeCapabilitiesLower.has("inlinebuttons");
-  const messageChannelOptions = listDeliverableMessageChannels().join("|");
+  const messageChannelOptions = buildDeliverableChannelOptions();
   const promptMode = params.promptMode ?? "full";
   const isMinimal = promptMode === "minimal" || promptMode === "none";
   const safetySection = [

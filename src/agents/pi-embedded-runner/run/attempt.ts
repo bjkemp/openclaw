@@ -26,6 +26,7 @@ import { createCacheTrace } from "../../cache-trace.js";
 import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
+  resolveDeliverableMessageToolHints,
 } from "../../channel-tools.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
@@ -302,13 +303,16 @@ export async function runEmbeddedAttempt(
           channel: runtimeChannel,
         })
       : undefined;
-    const messageToolHints = runtimeChannel
-      ? resolveChannelMessageToolHints({
-          cfg: params.config,
-          channel: runtimeChannel,
-          accountId: params.agentAccountId,
-        })
-      : undefined;
+    const messageToolHints = [
+      ...(runtimeChannel
+        ? resolveChannelMessageToolHints({
+            cfg: params.config,
+            channel: runtimeChannel,
+            accountId: params.agentAccountId,
+          })
+        : []),
+      ...resolveDeliverableMessageToolHints({ cfg: params.config, excludeChannel: runtimeChannel }),
+    ];
 
     const defaultModelRef = resolveDefaultModelForAgent({
       cfg: params.config ?? {},

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import type { PluginRegistry } from "../plugins/registry.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
-import { resolveGatewayMessageChannel } from "./message-channel.js";
+import { buildDeliverableChannelOptions, resolveGatewayMessageChannel } from "./message-channel.js";
 
 const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry => ({
   plugins: [],
@@ -57,5 +57,77 @@ describe("message-channel", () => {
       createRegistry([{ pluginId: "msteams", plugin: msteamsPlugin, source: "test" }]),
     );
     expect(resolveGatewayMessageChannel("teams")).toBe("msteams");
+  });
+});
+
+const outlookPlugin = {
+  id: "outlook",
+  meta: {
+    id: "outlook",
+    label: "Outlook Email",
+    selectionLabel: "Outlook Email (MS Graph)",
+    docsPath: "/channels/outlook",
+    blurb: "MS Graph.",
+    aliases: ["email"],
+  },
+  capabilities: { chatTypes: ["direct"] },
+  config: {
+    listAccountIds: () => [],
+    resolveAccount: () => ({}),
+  },
+} satisfies ChannelPlugin;
+
+const noAliasPlugin = {
+  id: "custom",
+  meta: {
+    id: "custom",
+    label: "Custom",
+    selectionLabel: "Custom",
+    docsPath: "/channels/custom",
+    blurb: "No aliases.",
+  },
+  capabilities: { chatTypes: ["direct"] },
+  config: {
+    listAccountIds: () => [],
+    resolveAccount: () => ({}),
+  },
+} satisfies ChannelPlugin;
+
+describe("buildDeliverableChannelOptions", () => {
+  beforeEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  afterEach(() => {
+    setActivePluginRegistry(emptyRegistry);
+  });
+
+  it("contains core channel IDs when no plugins are registered", () => {
+    const result = buildDeliverableChannelOptions();
+    expect(result).toMatch(/telegram/);
+    expect(result).toMatch(/discord/);
+    // No parenthetical annotations on core channels
+    expect(result).not.toMatch(/\(/);
+  });
+
+  it("appends plugin IDs annotated with their first alias", () => {
+    setActivePluginRegistry(
+      createRegistry([
+        { pluginId: "msteams", plugin: msteamsPlugin, source: "test" },
+        { pluginId: "outlook", plugin: outlookPlugin, source: "test" },
+      ]),
+    );
+    const result = buildDeliverableChannelOptions();
+    expect(result).toMatch(/msteams \(teams\)/);
+    expect(result).toMatch(/outlook \(email\)/);
+  });
+
+  it("appends plugin ID without annotation when aliases are empty", () => {
+    setActivePluginRegistry(
+      createRegistry([{ pluginId: "custom", plugin: noAliasPlugin, source: "test" }]),
+    );
+    const result = buildDeliverableChannelOptions();
+    expect(result).toMatch(/\|custom/);
+    expect(result).not.toMatch(/custom \(/);
   });
 });

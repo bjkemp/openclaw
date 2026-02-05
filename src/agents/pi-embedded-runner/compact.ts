@@ -25,7 +25,11 @@ import { isReasoningTagProvider } from "../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../bootstrap-files.js";
-import { listChannelSupportedActions, resolveChannelMessageToolHints } from "../channel-tools.js";
+import {
+  listChannelSupportedActions,
+  resolveChannelMessageToolHints,
+  resolveDeliverableMessageToolHints,
+} from "../channel-tools.js";
 import { formatUserTime, resolveUserTimeFormat, resolveUserTimezone } from "../date-time.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { resolveOpenClawDocsPath } from "../docs-path.js";
@@ -291,13 +295,16 @@ export async function compactEmbeddedPiSessionDirect(
           channel: runtimeChannel,
         })
       : undefined;
-    const messageToolHints = runtimeChannel
-      ? resolveChannelMessageToolHints({
-          cfg: params.config,
-          channel: runtimeChannel,
-          accountId: params.agentAccountId,
-        })
-      : undefined;
+    const messageToolHints = [
+      ...(runtimeChannel
+        ? resolveChannelMessageToolHints({
+            cfg: params.config,
+            channel: runtimeChannel,
+            accountId: params.agentAccountId,
+          })
+        : []),
+      ...resolveDeliverableMessageToolHints({ cfg: params.config, excludeChannel: runtimeChannel }),
+    ];
 
     const runtimeInfo = {
       host: machineName,
